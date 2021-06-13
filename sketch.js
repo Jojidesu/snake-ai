@@ -1,50 +1,61 @@
 // Daniel Shiffman
+// http://youtube.com/thecodingtrain
 // http://codingtra.in
-// http://patreon.com/codingtrain
-// Code for: https://youtu.be/AaGK-fj-BAM
 
-let s;
-let scl = 20;
+// Coding Challenge #115: Snake Game Redux
+// https://youtu.be/OMoVcohRgZA
+
+let snake;
+let rez = 20;
 let food;
+let w;
+let h;
 
 function setup() {
-  createCanvas(600, 600);
-  s = new Snake();
-  frameRate(10);
-  pickLocation();
+  createCanvas(400, 400);
+  w = floor(width / rez);
+  h = floor(height / rez);
+  frameRate(5);
+  snake = new Snake();
+  foodLocation();
 }
 
-function pickLocation() {
-  let cols = floor(width / scl);
-  let rows = floor(height / scl);
-  food = createVector(floor(random(cols)), floor(random(rows)));
-  food.mult(scl);
-}
-
-function mousePressed() {
-  s.total++;
-}
-
-function draw() {
-  background(51);
-  if (s.eat(food)) {
-    pickLocation();
-  }
-  s.death();
-  s.update();
-  s.show();
-  fill(255, 0, 100);
-  rect(food.x, food.y, scl, scl);
+function foodLocation() {
+  let x = floor(random(w));
+  let y = floor(random(h));
+  food = createVector(x, y);
 }
 
 function keyPressed() {
-  if (keyCode === UP_ARROW) {
-    s.dir(0, -1);
-  } else if (keyCode === DOWN_ARROW) {
-    s.dir(0, 1);
+  if (keyCode === LEFT_ARROW) {
+    snake.setDir(-1, 0);
   } else if (keyCode === RIGHT_ARROW) {
-    s.dir(1, 0);
-  } else if (keyCode === LEFT_ARROW) {
-    s.dir(-1, 0);
+    snake.setDir(1, 0);
+  } else if (keyCode === DOWN_ARROW) {
+    snake.setDir(0, 1);
+  } else if (keyCode === UP_ARROW) {
+    snake.setDir(0, -1);
+  } else if (key == ' ') {
+    snake.grow();
   }
+}
+
+function draw() {
+  scale(rez);
+  background(220);
+  if (snake.eat(food)) {
+    foodLocation();
+  }
+  snake.update();
+  snake.show();
+
+  if (snake.endGame()) {
+    print('END GAME');
+    background(255, 0, 0);
+    noLoop();
+  }
+
+  noStroke();
+  fill(255, 0, 0);
+  rect(food.x, food.y, 1, 1);
 }
