@@ -5,33 +5,44 @@
 // Coding Challenge #115: Snake Game Redux
 // https://youtu.be/OMoVcohRgZA
 
-const POPULATION = 150;
-const FOODCOUNT = 25;
+const POPULATION = 100;
+const FOODCOUNT = 1;
 
 let activeSnakes = [];
 let allSnakes = [];
 let rez = 20;
-let food;
+let foods = [];
 let w;
 let h;
+let bestSnake;
+let bestScore = 0;
+let highScoreSpan;
+let speedSlider;
+let speedSpan;
 
 function setup() {
-  createCanvas(400, 400);
+  let canvas = createCanvas(400, 400);
+  canvas.parent('canvascontainer');
+  highScoreSpan = select('#hs');
+  speedSlider = select('#speedSlider');
+  speedSpan = select('#speed');
+  frameRate(10);
   w = floor(width / rez);
   h = floor(height / rez);
-  frameRate(500);
   for(let i = 0; i < POPULATION; i++) {
     let snake = new Snake();
     activeSnakes[i] = snake;
     allSnakes[i] = snake;
   }
-  foodLocation();
+  initialFoodLocation();
 }
 
-function foodLocation() {
-  let x = floor(random(w));
-  let y = floor(random(h));
-  food = createVector(x, y);
+function initialFoodLocation() {
+  for(let i = 0; i < FOODCOUNT; i++) {
+    let x = floor(random(w));
+    let y = floor(random(h));
+    foods[i] = createVector(x, y);
+  }
 }
 
 // function keyPressed() {
@@ -51,22 +62,33 @@ function foodLocation() {
 function draw() {
   scale(rez);
   background(220);
-  for(let i = 0; i < activeSnakes.length; i++) {
-    let snake = activeSnakes[i];
-    if (snake.eat(food)) {
-      foodLocation();
+  let cycles = speedSlider.value();
+  speedSpan.html(cycles);
+  for (let n = 0; n < cycles; n++) {
+    for(let i = 0; i < activeSnakes.length; i++) {
+      let snake = activeSnakes[i];
+      for(let j = 0; j < foods.length; j++) {
+        if (snake.eat(foods[j])) {
+          let x = floor(random(w));
+          let y = floor(random(h));
+          foods[j] = createVector(x, y);
+        }
+      }
+      snake.think(foods);
+      snake.update();
+      snake.show();
+      if (snake.endGame() || snake.isStarving()) {
+        activeSnakes.splice(i, 1);
+      }
     }
-    snake.think(food);
-    snake.update();
-    snake.show();
-    if (snake.endGame() || snake.isStarving()) {
-      activeSnakes.splice(i, 1);
+    for(let i = 0; i < foods.length; i++) {
+      noStroke();
+      fill(255, 0, 0);
+      rect(foods[i].x, foods[i].y, 1, 1);
     }
-  }
-  noStroke();
-  fill(255, 0, 0);
-  rect(food.x, food.y, 1, 1);
-  if (activeSnakes.length == 0) {
-    nextGeneration();
+
+    if (activeSnakes.length == 0) {
+      nextGeneration();
+    }
   }
 }

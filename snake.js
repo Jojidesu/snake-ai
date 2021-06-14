@@ -25,12 +25,13 @@ class Snake {
       this.brain = brain.copy();
       this.brain.mutate(mutate);
     } else {
-      this.brain = new NeuralNetwork(4, 40, 1);
+      this.brain = new NeuralNetwork(6, 128, 2);
     }
     this.score = 0;
     this.fitness = 0;
     this.starve = 0;
     this.distanceToFood = 0;
+    this.color = color(random(255), random(255), random(255));
   }
 
   copy() {
@@ -69,31 +70,48 @@ class Snake {
     }
   }
 
-  think(food) {
+  think(foods) {
     let head = this.body[this.body.length - 1].copy();
     let tail = this.body[0].copy();
-    let currentDistanceToFood = head.dist(food);
-    if(this.distanceToFood > currentDistanceToFood) {
-      this.score++
-    } else {
-      this.score--
+    let closestFood = 0;
+    let closestFoodDistance = 0;
+    for(let i = 0; i < foods.length; i++) {
+      if(closestFoodDistance < foods[i].dist(head)) {
+        closestFood = i
+        closestFoodDistance = foods[i].dist(head)
+      }
     }
-    this.distanceToFood = currentDistanceToFood;
-    let headToFoodYDistance = head.y - food.y;
-    let headToFoodXDistance = head.x - food.x;
-    let headToBorderYDistance = head.y - h;
-    let headToBorderXDistance = head.x - w;
+    let food = foods[closestFood];
+    if(this.distanceToFood > closestFoodDistance) {
+      if(head.x == food.x || head.y == food.y) {
+        this.score++
+      }
+    } else {
+      if (this.score > 0) {
+        this.score-=2
+      } else {
+        this.score=0
+      }
+    }
+    this.distanceToFood = closestFoodDistance;
+    let headToBorderYDistance = h - head.y;
+    let headToBorderXDistance = w - head.x;
+
     let largestDistance = createVector(floor(w), floor(h)).mag();
 
     let inputs = [];
-    //1.head to food distance
-    inputs[0] = map(headToFoodYDistance, -h, h, -1, 1);
-    //2.head to tail distance
-    inputs[1] = map(headToFoodXDistance, -w, w, -1, 1);
-    //3.distance y of head to border
-    inputs[2] = map(headToBorderYDistance, -h, h, -1, 1);
-    //4.distance x of head to border
-    inputs[3] = map(headToBorderXDistance, -w, w, -1, 1);
+    //1.head x position
+    inputs[0] = map(head.x, 0, w, 0, 1);
+    //2.head y position
+    inputs[1] = map(head.y, 0, h, 0, 1);
+    //3.food x position
+    inputs[2] = map(food.x, 0, w, 0, 1);
+    //4.food y position
+    inputs[3] = map(food.y, 0, h, 0, 1);
+    //5.food y position
+    inputs[4] = map(headToBorderYDistance, 0, h, 0, 1);
+    //6.food x position
+    inputs[5] = map(headToBorderXDistance, 0, w, 0, 1);
     // console.log("input");
     // console.table(inputs);
     // Get the outputs from the network
@@ -101,11 +119,11 @@ class Snake {
     // console.log("output");
     // console.table(action);
     //4 direction
-    if (action[0] <= 0.25) {
+    if (action[0] <= 0.5 && action[1] <= 0.5 ) {
       this.moveUp();
-    } else if (action[0] <= 0.5) {
+    } else if (action[0] > 0.5 && action[1] > 0.5) {
       this.moveDown();
-    } else if (action[0] <= 0.75) {
+    } else if (action[0] <= 0.5 && action[1] > 0.5) {
       this.moveLeft();
     } else {
       this.moveRight();
@@ -123,7 +141,12 @@ class Snake {
   }
 
   isStarving() {
-    return this.starve >= 100;
+    if (this.starve >= 400) {
+      this.score = this.score / 5;
+      return true;
+    } else {
+      return false
+    }
   }
 
   grow() {
@@ -139,12 +162,12 @@ class Snake {
     if (x > w - 1 || x < 0 || y > h - 1 || y < 0) {
       return true;
     }
-    for (let i = 0; i < this.body.length - 1; i++) {
-      let part = this.body[i];
-      if (part.x == x && part.y == y) {
-        return true;
-      }
-    }
+    // for (let i = 0; i < this.body.length - 1; i++) {
+    //   let part = this.body[i];
+    //   if (part.x == x && part.y == y) {
+    //     return true;
+    //   }
+    // }
     return false;
   }
 
@@ -160,7 +183,7 @@ class Snake {
 
   show() {
     for (let i = 0; i < this.body.length; i++) {
-      fill(random(255));
+      fill(this.color);
       noStroke();
       rect(this.body[i].x, this.body[i].y, 1, 1);
     }

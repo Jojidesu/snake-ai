@@ -24,9 +24,14 @@ function generate(oldSnakes) {
   let newSnakes = [];
   for (let i = 0; i < oldSnakes.length; i++) {
     // Select a bird based on fitness
+    if(bestScore < oldSnakes[i].score) {
+      bestScore = oldSnakes[i].score;
+      bestBird = oldSnakes[i].copy();
+    }
     let snake = poolSelection(oldSnakes);
     newSnakes[i] = snake;
   }
+  highScoreSpan.html(bestScore);
   return newSnakes;
 }
 
