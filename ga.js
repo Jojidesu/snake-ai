@@ -26,7 +26,7 @@ function generate(oldSnakes) {
     // Select a bird based on fitness
     if(bestScore < oldSnakes[i].score) {
       bestScore = oldSnakes[i].score;
-      bestBird = oldSnakes[i].copy();
+      bestSnake = oldSnakes[i].copy();
     }
     let snake = poolSelection(oldSnakes);
     newSnakes[i] = snake;

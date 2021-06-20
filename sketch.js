@@ -19,6 +19,11 @@ let bestScore = 0;
 let highScoreSpan;
 let speedSlider;
 let speedSpan;
+let trainingData;
+
+function preload() {
+  trainingData = JSON.parse(data);
+}
 
 function setup() {
   let canvas = createCanvas(400, 400);
@@ -26,7 +31,11 @@ function setup() {
   highScoreSpan = select('#hs');
   speedSlider = select('#speedSlider');
   speedSpan = select('#speed');
-  frameRate(10);
+  saveButton = select('#best');
+  recordButton = select('#record');
+  saveButton.mousePressed(saveBest);
+  recordButton.mousePressed(saveJson);
+  frameRate(20);
   w = floor(width / rez);
   h = floor(height / rez);
   for(let i = 0; i < POPULATION; i++) {
@@ -37,6 +46,14 @@ function setup() {
   initialFoodLocation();
 }
 
+function saveJson() {
+  saveJSON(JSON.stringify(records),"training.json");
+}
+
+function saveBest() {
+  saveJSON(JSON.stringify(bestSnake.brain),"bestsnake.json");
+}
+
 function initialFoodLocation() {
   for(let i = 0; i < FOODCOUNT; i++) {
     let x = floor(random(w));
@@ -45,19 +62,34 @@ function initialFoodLocation() {
   }
 }
 
-// function keyPressed() {
-//   if (keyCode === LEFT_ARROW) {
-//     snake.moveLeft();
-//   } else if (keyCode === RIGHT_ARROW) {
-//     snake.moveRight();
-//   } else if (keyCode === DOWN_ARROW) {
-//     snake.moveDown();
-//   } else if (keyCode === UP_ARROW) {
-//     snake.moveUp();
-//   } else if (key == ' ') {
-//     snake.grow();
-//   }
-// }
+function randomizeFoodLocation() {
+  for(let i = 0; i < foods.length; i++) {
+    let x = floor(random(w));
+    let y = floor(random(h));
+    foods[i] = createVector(x, y);
+  }
+}
+
+let isLoop = true;
+function keyPressed() {
+  if (keyCode === LEFT_ARROW) {
+    activeSnakes[0].moveLeft();
+  } else if (keyCode === RIGHT_ARROW) {
+    activeSnakes[0].moveRight();
+  } else if (keyCode === DOWN_ARROW) {
+    activeSnakes[0].moveDown();
+  } else if (keyCode === UP_ARROW) {
+    activeSnakes[0].moveUp();
+  } else if (key == ' ') {
+    if (isLoop) {
+      noLoop();
+      isLoop = false;
+    } else {
+      loop();
+      isLoop = true;
+    }
+  }
+}
 
 function draw() {
   scale(rez);
@@ -74,6 +106,7 @@ function draw() {
           foods[j] = createVector(x, y);
         }
       }
+      // snake.recordTraining(foods);
       snake.think(foods);
       snake.update();
       snake.show();
